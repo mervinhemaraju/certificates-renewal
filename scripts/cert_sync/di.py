@@ -21,6 +21,7 @@ def main_injection(func):
 
         # * Pass data to DI
         di['oci_bucket_client'] = oci_bucket_client
+        di['namespace_name'] = oci_bucket_client.get_namespace().data
 
         # Log message
         logging.info("DI intialized sucessfully.")
