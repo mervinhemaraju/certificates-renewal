@@ -20,6 +20,8 @@ def main_injection(func):
         oci_bucket_client = oci.object_storage.ObjectStorageClient(config=OCI_CONFIG, signer=signer)
 
         # * Pass data to DI
+        di['local_root_folder'] = '/etc/letsencrypt/live/'
+        di['files_to_save'] = ['cert.pem', 'chain.pem', 'fullchain.pem', 'privkey.pem']
         di['oci_bucket_client'] = oci_bucket_client
         di['namespace_name'] = oci_bucket_client.get_namespace().data
 
