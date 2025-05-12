@@ -3,6 +3,15 @@ import oci
 import logging
 from kink import di
 
+def post_to_slack(blocks, thread_ts=None, channel=None):
+    response = di["slack_wc"].chat_postMessage(
+        channel=di["slack_channel_main"] if channel is None else channel,
+        text="============",
+        attachments=blocks,
+        thread_ts=thread_ts,
+    )
+    return response, response["ts"]
+
 def certificates_exists(domain: str) -> bool:
 
     """Check if the certificates exist in the local directory."""
@@ -77,7 +86,7 @@ def sync_certificate(domain: str, file_name: str) -> None:
 
     except oci.exceptions.ServiceError as se:
 
-        if(e.status == 404):
+        if(se.status == 404):
             # Log error that file doesn't exist
             logging.info(f"Uploading new certificate: {file_name} for {domain}")
 
