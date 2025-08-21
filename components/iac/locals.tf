@@ -17,7 +17,7 @@ locals {
 
     # > Lambda default configurations
     lambda = {
-      SOURCE_PATH          = "./functions/renew/"
+      SOURCE_PATH          = "../functions/renew/"
       RETRIES_ATTEMPT      = 0
       TIMEOUT              = "200"
       HANDLER              = "main.main"
