@@ -9,8 +9,6 @@ module "renew_web_helios" {
   handler       = local.constants.lambda.HANDLER
   runtime       = local.constants.lambda.VERSION
 
-  architectures = ["arm64"]
-
   memory_size                       = local.constants.lambda.MEMORY_SIZE
   cloudwatch_logs_retention_in_days = local.constants.lambda.CLOUDWATCH_RETENTION
   source_path                       = local.constants.lambda.SOURCE_PATH

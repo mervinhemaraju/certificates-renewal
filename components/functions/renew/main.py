@@ -53,7 +53,7 @@ def main(event, context):
 
     # Check whether the certificate is expiring
     needs_renewal, days_remaining = check_certificate_expiry(
-        certficate=certificate_content
+        certificate=certificate_content
     )
 
     # Log info
@@ -103,7 +103,7 @@ def main(event, context):
 
         # Check whether the certificate is expiring
         needs_renewal, days_remaining = check_certificate_expiry(
-            certficate=new_cert.encode()
+            certificate=new_cert.encode()
         )
 
         # Log info
