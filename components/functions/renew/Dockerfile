@@ -1,3 +1,4 @@
+# TODO(Resolve issues in ecr vulnerability)
 # Use AWS Lambda Python base image
 FROM public.ecr.aws/lambda/python:3.11
 

@@ -9,6 +9,7 @@ module "iam_role_renew_web_helios" {
   role_name             = "role-lambda-oci-helios-web-ssl-renew"
   trusted_role_services = ["lambda.amazonaws.com"]
 
+  # TODO(Update iam actions to allow event bridge trigger)
   #   # Attach AWS managed policies
   #   role_policy_arns = [
   #     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",

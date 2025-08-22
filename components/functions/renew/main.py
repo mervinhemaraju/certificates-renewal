@@ -14,7 +14,7 @@ from functions import (
 )
 from di import main_injection
 
-
+# TODO(Cleanup vars)
 # WORKING_DIRECTORY = "/tmp"  # Activate when using lambda
 WORKING_DIRECTORY = "tmp"
 CLOUDFLARE_INI_FILE = f"{WORKING_DIRECTORY}/cloudflare.ini"
@@ -28,6 +28,8 @@ CERTIFICATE_FILES = ["cert.pem", "chain.pem", "fullchain.pem", "privkey.pem"]
 
 @main_injection
 def main(event, context):
+    # TODO(Add try exccept)
+
     # Log script starting
     logging.info(f"Certificate renew starting with event: {event}")
     logging.info(f"Certificate renew starting with context: {context}")
@@ -62,6 +64,7 @@ def main(event, context):
 
     # Check if renewal is needed or force_renew is set
     if needs_renewal or force_renew:
+        # TODO(Reactivate when done)
         # certbot_args = [
         #     "certonly",
         #     "--non-interactive",
