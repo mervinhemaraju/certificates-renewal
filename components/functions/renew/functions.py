@@ -223,6 +223,7 @@ def oci_backup_certificates(
     namespace_name: str,
     bucket_name: str,
     bucket_certificate_live_path: str,
+    bucket_certificate_backup_path: str,
     working_directory_path: str,
 ):
     # Download all the files
