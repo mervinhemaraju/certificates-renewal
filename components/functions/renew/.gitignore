@@ -142,6 +142,16 @@ cython_debug/
 
 # Python test file
 test.py
+test.sh
 
 # Tmp file for testing
 tmp/
+
+# Zip files
+*.zip
+
+# Layers
+lambda-layer/
+
+# DS Store files
+.DS_Store
