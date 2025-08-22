@@ -28,8 +28,4 @@ module "ecr_renew_web_helios" {
       ]
     }
   )
-
-  depends_on = [
-    module.lambda_renew_web_helios
-  ]
 }
