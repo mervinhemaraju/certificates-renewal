@@ -187,6 +187,12 @@ def oci_update_ssl_listeners(
                 protocol=listener.protocol,
                 ssl_configuration=oci.load_balancer.models.SSLConfigurationDetails(
                     certificate_name=certificate_name,
+                    verify_depth=listener.ssl_configuration.verify_depth,
+                    protocols=["TLSv1.2", "TLSv1.3"],
+                    # server_order_preference=listener.ssl_configuration.server_order_preference,
+                    # has_session_resumption=listener.ssl_configuration.has_session_resumption,
+                    # cipher_suite_name=listener.ssl_configuration.cipher_suite_name,
+                    verify_peer_certificate=listener.ssl_configuration.verify_peer_certificate,
                 ),
             ),
         )
