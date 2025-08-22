@@ -21,8 +21,9 @@ CLOUDFLARE_INI_FILE = f"{WORKING_DIRECTORY}/cloudflare.ini"
 LOCAL_CERTIFICATE_DIRECTORY = f"{WORKING_DIRECTORY}/live/mervinhemaraju.com"
 BUCKET_CERTIFICATE_NAME = "certificates"
 BUCKET_CERTIFICATE_DIRECTORY_LIVE = "live/san-mervinhemaraju-com-plagueworks-org"
-BUCKET_CERTIFICATE_DIRECTORY_BACKUP = "live/san-mervinhemaraju-com-plagueworks-org"
+BUCKET_CERTIFICATE_DIRECTORY_BACKUP = "backup/san-mervinhemaraju-com-plagueworks-org"
 LOAD_BALANCER_NAME = "web"
+CERTIFICATE_FILES = ["cert.pem", "chain.pem", "fullchain.pem", "privkey.pem"]
 
 
 @main_injection
@@ -44,30 +45,11 @@ def main(event, context):
     oci_namespace = di["oci_bucket_client"].get_namespace().data
 
     # Get certificate from bucket
-    get_certificates_response = oci_download_object(
+    certificate_content = oci_download_object(
         namespace_name=oci_namespace,
         bucket_name=BUCKET_CERTIFICATE_NAME,
         object_name=f"{BUCKET_CERTIFICATE_DIRECTORY_LIVE}/cert.pem",
     )
-
-    # (
-    #     di["oci_bucket_client"]
-    #     .get_object(
-    #         namespace_name=oci_namespace,
-    #         bucket_name=BUCKET_CERTIFICATE_NAME,
-    #         object_name=f"{BUCKET_CERTIFICATE_DIRECTORY_LIVE}/cert.pem",
-    #     )
-    #     .data
-    # )
-
-    # If certificate doesn't exist, raise error
-    if get_certificates_response.status_code != 200:
-        raise Exception(
-            f"Cannot find the certificate file in -> {BUCKET_CERTIFICATE_DIRECTORY_LIVE}"
-        )
-
-    # Get the certificate content
-    certificate_content = get_certificates_response.content
 
     # Check whether the certificate is expiring
     needs_renewal, days_remaining = check_certificate_expiry(
@@ -118,9 +100,6 @@ def main(event, context):
         local_chain_content = Path(
             f"{LOCAL_CERTIFICATE_DIRECTORY}/chain.pem",
         ).read_text()
-        local_fullchain_content = Path(
-            f"{LOCAL_CERTIFICATE_DIRECTORY}/fullchain.pem",
-        ).read_text()
         local_privkey_content = Path(
             f"{LOCAL_CERTIFICATE_DIRECTORY}/privkey.pem",
         ).read_text()
@@ -132,11 +111,29 @@ def main(event, context):
             bucket_certificate_live_path=BUCKET_CERTIFICATE_DIRECTORY_LIVE,
             bucket_certificate_backup_path=BUCKET_CERTIFICATE_DIRECTORY_BACKUP,
             working_directory_path=WORKING_DIRECTORY,
+            certificate_files=CERTIFICATE_FILES,
         )
-        return
-        # TODO(Add new certificates to bucket)
 
-        # Get the load balacner id
+        # Upload the new certificates to the bucket
+        for file in CERTIFICATE_FILES:
+            # Construct local file name
+            local_cert_file_name = f"{LOCAL_CERTIFICATE_DIRECTORY}/{file}"
+
+            # Construct remote file name
+            remote_cert_file_name = f"{BUCKET_CERTIFICATE_DIRECTORY_LIVE}/{file}"
+
+            # Retrieve the content of the file
+            cert_file_content = Path(local_cert_file_name).read_text()
+
+            # Upload the file to the bucket
+            oci_upload_object(
+                namespace_name=oci_namespace,
+                bucket_name=BUCKET_CERTIFICATE_NAME,
+                object_name=remote_cert_file_name,
+                object_content=cert_file_content,
+            )
+
+        # Get the load balancer id
         load_balancer_id, ssl_listeners = oci_get_load_balancer_details(
             load_balancer_name=LOAD_BALANCER_NAME
         )
@@ -160,20 +157,9 @@ def main(event, context):
             certificate_name=certificate_name,
         )
 
-        # TODO(Cleanup)
+        # TODO(Cleanup files)
 
-        # with open(CERT_FILE, "r") as cert_file:
-        # new_cert = cert_file.read()
-
-        # Check whether the certificate is expiring
-        # needs_renewal, days_remaining = check_certificate_expiry(
-        #     certificate=local_cert_content.encode()
-        # )
-
-        # # Log info
-        # logging.info(f"New cert needs renewal: {needs_renewal}")
-
-        # logging.info(f"New certificate expires in {days_remaining} days.")
+        # TODO(Check renew date on the new cert and print)
 
     logging.info("End of script")
     # TODO(Add slack notifications)

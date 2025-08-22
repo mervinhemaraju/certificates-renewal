@@ -1,5 +1,6 @@
 import oci
 import logging
+from pathlib import Path
 from kink import di
 from datetime import datetime
 from cryptography import x509
@@ -123,6 +124,7 @@ def oci_get_load_balancer_details(load_balancer_name: str):
 
 
 def oci_create_lb_certificate(lb_id: str, cert: str, ca: str, prinvkey: str):
+    # TODO(Use composite client if available)
     # Generate a name for the certificate
     name = (
         f"san-mervinhemaraju.com-plagueworks.org-{datetime.now().strftime('%Y.%m.%d')}"
@@ -171,6 +173,8 @@ def oci_create_lb_certificate(lb_id: str, cert: str, ca: str, prinvkey: str):
 def oci_update_ssl_listeners(
     listeners: list[str], load_balancer_id: str, certificate_name: str
 ):
+    # TODO(Use composite client if available)
+
     # Iterate through each listeners
     for listener in listeners:
         # Update the listener
@@ -225,6 +229,62 @@ def oci_backup_certificates(
     bucket_certificate_live_path: str,
     bucket_certificate_backup_path: str,
     working_directory_path: str,
+    certificate_files: list[str],
 ):
-    # Download all the files
-    pass
+    """
+    Backup certificates from live path to backup path via local working directory.
+    Downloads all files from live path, saves them locally, then uploads to backup path.
+    """
+
+    local_backup_path = Path(working_directory_path) / bucket_certificate_backup_path
+
+    # Create the local backup directory
+    local_backup_path.mkdir(parents=True, exist_ok=True)
+
+    logging.info(
+        f"Starting certificate backup from {bucket_certificate_live_path} to {bucket_certificate_backup_path}"
+    )
+
+    # Step 1: Download all certificate files from live path to local directory
+    for cert_file in certificate_files:
+        live_object_path = f"{bucket_certificate_live_path}/{cert_file}"
+        local_file_path = local_backup_path / cert_file
+
+        logging.info(f"Downloading {live_object_path} to {local_file_path}")
+
+        # Download the certificate file
+        cert_content = oci_download_object(
+            namespace_name=namespace_name,
+            bucket_name=bucket_name,
+            object_name=live_object_path,
+        )
+
+        # Save to local file
+        local_file_path.write_bytes(cert_content)
+
+        logging.info(f"Successfully downloaded and saved {cert_file}")
+
+    # Step 2: Upload all files from local directory to backup path
+    for cert_file in certificate_files:
+        local_file_path = local_backup_path / cert_file
+        backup_object_path = f"{bucket_certificate_backup_path}/{cert_file}"
+
+        logging.info(f"Uploading {local_file_path} to {backup_object_path}")
+
+        # Read the local file content
+        cert_content = local_file_path.read_bytes()
+
+        # Upload to backup location
+        oci_upload_object(
+            namespace_name=namespace_name,
+            bucket_name=bucket_name,
+            object_name=backup_object_path,
+            object_content=cert_content,
+            content_type="application/x-pem-file",
+        )
+
+        logging.info(f"Successfully uploaded {cert_file} to backup location")
+
+    logging.info(
+        f"Certificate backup completed successfully to {bucket_certificate_backup_path}"
+    )
