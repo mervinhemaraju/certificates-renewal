@@ -1,6 +1,6 @@
 from main import main
 
-EVENT = {}
+EVENT = {"force_renew": True}
 
 CONTEXT = {}
 

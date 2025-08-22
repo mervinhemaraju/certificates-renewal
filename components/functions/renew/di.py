@@ -1,4 +1,5 @@
 import os
+import logging
 import oci
 from kink import di
 from functools import wraps
@@ -43,8 +44,12 @@ def main_injection(func):
     # DI Wrapper
     @wraps(func)
     def wrapper(*args, **kwargs):
+        # Set logging
+        logging.getLogger().setLevel(logging.INFO)
+
         # Retrieve OS variables
         DOPPLER_MAIN_TOKEN = os.environ["DOPPLER_MAIN_TOKEN"]
+        OWNER_EMAIL = "mervinhemaraju16@gmail.com"
         OCI_SECRETS_NAME = "cloud-oci-creds"
         OCI_ACCOUNT_NAME = "HELIOS"
         OCI_REGION = "af-johannesburg-1"
@@ -65,11 +70,21 @@ def main_injection(func):
         oci.config.validate_config(config)
 
         # Set DI Injections
+        # > injections
+        di["owner_email"] = OWNER_EMAIL
+
         # > secrets injections
         di["secrets"] = doppler.secrets
 
         # > oci injections
+        di["oci_region"] = OCI_REGION
+        di["compartment_id"] = extract_secret(
+            secret=doppler.secrets,
+            project=OCI_SECRETS_NAME,
+            key=f"OCI_{OCI_ACCOUNT_NAME.upper()}_COMPARTMENT_PRODUCTION_ID",
+        )
         di["oci_bucket_client"] = oci.object_storage.ObjectStorageClient(config)
+        di["oci_lb_client"] = oci.load_balancer.LoadBalancerClient(config)
 
         func(*args, **kwargs)
 

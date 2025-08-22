@@ -21,7 +21,7 @@ locals {
       TIMEOUT              = "200"
       HANDLER              = "main.main"
       VERSION              = "python3.11"
-      MEMORY_SIZE          = 128
+      MEMORY_SIZE          = 256
       CLOUDWATCH_RETENTION = 7
       TRUSTED_ENTITIES = [
         {
