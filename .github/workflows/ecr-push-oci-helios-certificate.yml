@@ -1,0 +1,59 @@
+name: Create and publish the Oci Heliso Web SSL Renew Docker image to ECR
+
+# Configures this workflow to run every time:
+# - a change is pushed to the feature/* branch
+# - a change is pushed to the fix/* branch
+# - a change is pushed to the improve/* branch
+# - a change is pushed to the main branch
+# - a change is done to the components/functions/renew path
+on:
+  push:
+    branches:
+      - "feature/*"
+      - "fix/*"
+      - "improve/*"
+      - "main"
+    paths:
+      - "components/functions/renew/**"
+
+# Defines two custom environment variables for the workflow.
+# These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
+env:
+  REPOSITORY: "python/oci/renew-web-helios"
+  DIRECTORY: ./components/functions/renew
+  GH_OIDC_ROLE: arn:aws:iam::371497173983:role/github-actions
+
+# There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/heads/feature/')
+
+    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.GH_OIDC_ROLE }}
+          aws-region: eu-west-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR with the GH commit tag
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{env.REPOSITORY}}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG ${{env.DIRECTORY}}
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
