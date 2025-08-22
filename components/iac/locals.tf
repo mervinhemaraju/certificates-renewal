@@ -32,5 +32,11 @@ locals {
         }
       ]
     }
+
+    ecr = {
+      helios_web_renew = {
+        name = "python/oci/renew-web-helios"
+      }
+    }
   }
 }
