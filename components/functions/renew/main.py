@@ -130,7 +130,7 @@ def main(event, context):
             namespace_name=oci_namespace,
             bucket_name=BUCKET_CERTIFICATE_NAME,
             bucket_certificate_live_path=BUCKET_CERTIFICATE_DIRECTORY_LIVE,
-            bucket_certificate_backup_path=BUCKET_CERTIFICATE_DIRECTORY_BACKUP
+            bucket_certificate_backup_path=BUCKET_CERTIFICATE_DIRECTORY_BACKUP,
             working_directory_path=WORKING_DIRECTORY,
         )
         return
