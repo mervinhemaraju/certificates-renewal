@@ -1,5 +1,5 @@
 # Create an assumable role for Lambda renew_web_helios
-module "renew_web_helios" {
+module "iam_role_renew_web_helios" {
 
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
   version = "~> 5.0"

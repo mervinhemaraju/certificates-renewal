@@ -1,5 +1,5 @@
 # # Python lambda for certificate renew
-# module "renew_web_helios" {
+# module "lambda_renew_web_helios" {
 
 #   source  = "terraform-aws-modules/lambda/aws"
 #   version = "7.0.0"
@@ -23,7 +23,7 @@
 
 #   create_package = false
 #   package_type   = "Image"
-#   image_uri      = data.aws_ecr_image.renew_web_helios.image_uri
+#   image_uri      = data.aws_ecr_image.iam_role_renew_web_helios.image_uri
 
 #   environment_variables = {
 #     DOPPLER_MAIN_TOKEN = var.token_doppler_global

@@ -1,4 +1,4 @@
-module "renew_web_helios" {
+module "ecr_renew_web_helios" {
   source  = "terraform-aws-modules/ecr/aws"
   version = "1.6.0"
 
