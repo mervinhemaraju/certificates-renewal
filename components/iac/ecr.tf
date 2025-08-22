@@ -5,7 +5,7 @@ module "ecr_renew_web_helios" {
   repository_name = "python/oci/renew-web-helios"
 
   repository_lambda_read_access_arns = [
-    module.renew_web_helios.lambda_function_arn
+    # module.renew_web_helios.lambda_function_arn
   ]
 
   repository_force_delete = true
