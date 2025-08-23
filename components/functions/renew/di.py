@@ -73,7 +73,7 @@ def main_injection(func):
         # Set DI Injections
         # > injections
         di["owner_email"] = "mervinhemaraju16@gmail.com"
-        di["working_directory"] = "tmp/renewdirectory"
+        di["working_directory"] = "/tmp/renewdirectory"
         di["bucket_certificate_name"] = "certificates"
         di["bucket_certificate_directory_live"] = (
             "live/san-mervinhemaraju-com-plagueworks-org"

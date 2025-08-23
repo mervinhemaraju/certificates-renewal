@@ -1,4 +1,5 @@
 import logging
+import shutil
 from kink import di
 from pathlib import Path
 from certbot._internal import main as certbot_main
@@ -30,13 +31,17 @@ def main(event, context):
 
         # ! If this is a debug, re-write the working
         if debug:
-            di["working_directory"] = "/" + di["working_directory"]
+            # Remove the '/' from the path if debugging
+            di["working_directory"] = di["working_directory"][1:]
 
         # Set working directory dependent vars here
         di["cloudflare_ini_file"] = f"{di['working_directory']}/cloudflare.ini"
         di["local_certificate_directory"] = (
             f"{di['working_directory']}/live/mervinhemaraju.com"
         )
+
+        # Ensure the working directory is created
+        Path(di["working_directory"]).mkdir(parents=True, exist_ok=True)
 
         # Log info
         logging.info(f"Working directory is set to {di['working_directory']}")
@@ -66,7 +71,6 @@ def main(event, context):
 
         # Check if renewal is needed or force_renew is set
         if needs_renewal or force_renew:
-            # TODO(Reactivate when done)
             certbot_args = [
                 "certonly",
                 "--non-interactive",
@@ -159,9 +163,16 @@ def main(event, context):
                 certificate_name=certificate_name,
             )
 
-            # TODO(Cleanup files)
+            # Check whether the certificate is expiring
+            needs_renewal, days_remaining = check_certificate_expiry(
+                certificate=local_certificate_contents["cert.pem"]
+            )
 
-            # TODO(Check renew date on the new cert and print)
+            # Log info
+            logging.info(f"New certificate expires in {days_remaining} days.")
+
+            # Delete the whole working directory
+            shutil.rmtree(di["working_directory"])
 
         # Log info
         logging.info("Renew script has successfully completed.")
