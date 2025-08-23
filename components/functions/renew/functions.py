@@ -15,14 +15,14 @@ def extract_secret(secret, project, key):
     ).value["raw"]
 
 
-def load_cloudflare_ini_file(cloudflare_ini_file_path):
+def load_cloudflare_ini_file():
     # Get the cloudflare token
     cloudflare_token = extract_secret(
         secret=di["secrets"], project="apps-creds", key="CLOUDFLARE_TERRAFORM_TOKEN"
     )
 
     # Create the cloudflare.ini file
-    with open(cloudflare_ini_file_path, "w") as f:
+    with open(di["cloudflare_ini_file"], "w") as f:
         f.write(f"dns_cloudflare_api_token = {cloudflare_token}\n")
 
 
@@ -94,20 +94,22 @@ def oci_upload_object(
     logging.info(f"Successfully uploaded {object_name}")
 
 
-def oci_get_load_balancer_details(load_balancer_name: str):
+def oci_get_load_balancer_details():
     # Query the load balancers
     load_balancers_response = (
         di["oci_lb_client"]
         .list_load_balancers(
             compartment_id=di["compartment_id"],
-            display_name=load_balancer_name,
+            display_name=di["load_balancer_name"],
         )
         .data
     )
 
     # Check if load balancer exists
     if len(load_balancers_response) < 1:
-        raise Exception(f"The load balancer {load_balancer_name} cannot be found.")
+        raise Exception(
+            f"The load balancer {di['load_balancer_name']} cannot be found."
+        )
 
     # Get the load balancer id
     lb_id = load_balancers_response[0].id
@@ -124,14 +126,13 @@ def oci_get_load_balancer_details(load_balancer_name: str):
 
 
 def oci_create_lb_certificate(lb_id: str, cert: str, ca: str, prinvkey: str):
-    # TODO(Use composite client if available)
     # Generate a name for the certificate
     name = (
         f"san-mervinhemaraju.com-plagueworks.org-{datetime.now().strftime('%Y.%m.%d')}"
     )
 
-    # Create the certificate
-    create_certificate_response = di["oci_lb_client"].create_certificate(
+    # Create the certificate and wait for state
+    response = di["oci_lb_composite_client"].create_certificate_and_wait_for_state(
         load_balancer_id=lb_id,
         create_certificate_details=oci.load_balancer.models.CreateCertificateDetails(
             certificate_name=name,
@@ -139,31 +140,22 @@ def oci_create_lb_certificate(lb_id: str, cert: str, ca: str, prinvkey: str):
             public_certificate=cert,
             private_key=prinvkey,
         ),
+        wait_for_states=["SUCCEEDED", "FAILED"],
+        waiter_kwargs={
+            "max_interval_seconds": 7,
+            "max_wait_seconds": 100,
+        },
     )
-
-    # Get the work request id
-    work_request_id = create_certificate_response.headers.get("opc-work-request-id")
 
     # Log info
-    logging.info(f"Waiting for certificate to be created with wid -> {work_request_id}")
-
-    # Wait for the work request to complete
-    get_work_request_response = oci.wait_until(
-        di["oci_lb_client"],
-        di["oci_lb_client"].get_work_request(work_request_id),
-        "lifecycle_state",
-        "SUCCEEDED",
-        max_interval_seconds=7,  # Check every 7 seconds max
-        max_wait_seconds=100,
-    )
+    logging.info(f"Response for creating certificate -> {response.data}")
 
     # Check if the work request failed
-    if get_work_request_response.data.lifecycle_state == "FAILED":
-        error_messages = [
-            error.message for error in get_work_request_response.data.error_details
-        ]
+    if response.data.lifecycle_state != "SUCCEEDED":
+        error_messages = [error.message for error in response.data.error_details]
         raise Exception(f"Certificate creation failed: {', '.join(error_messages)}")
 
+    # Log the info
     logging.info(f"Certificate '{name}' created successfully")
 
     # Return the certificate name
@@ -173,12 +165,10 @@ def oci_create_lb_certificate(lb_id: str, cert: str, ca: str, prinvkey: str):
 def oci_update_ssl_listeners(
     listeners: list[str], load_balancer_id: str, certificate_name: str
 ):
-    # TODO(Use composite client if available)
-
     # Iterate through each listeners
     for listener in listeners:
         # Update the listener
-        update_listener_response = di["oci_lb_client"].update_listener(
+        response = di["oci_lb_composite_client"].update_listener_and_wait_for_state(
             load_balancer_id=load_balancer_id,
             listener_name=listener.name,
             update_listener_details=oci.load_balancer.models.UpdateListenerDetails(
@@ -188,61 +178,48 @@ def oci_update_ssl_listeners(
                 ssl_configuration=oci.load_balancer.models.SSLConfigurationDetails(
                     certificate_name=certificate_name,
                     verify_depth=listener.ssl_configuration.verify_depth,
-                    protocols=["TLSv1.2", "TLSv1.3"],
-                    # server_order_preference=listener.ssl_configuration.server_order_preference,
-                    # has_session_resumption=listener.ssl_configuration.has_session_resumption,
-                    # cipher_suite_name=listener.ssl_configuration.cipher_suite_name,
+                    # protocols=["TLSv1.2", "TLSv1.3"],
+                    protocols=listener.ssl_configuration.protocols,
+                    server_order_preference=listener.ssl_configuration.server_order_preference,
+                    has_session_resumption=listener.ssl_configuration.has_session_resumption,
+                    cipher_suite_name=listener.ssl_configuration.cipher_suite_name,
                     verify_peer_certificate=listener.ssl_configuration.verify_peer_certificate,
                 ),
             ),
+            wait_for_states=["SUCCEEDED", "FAILED"],
+            waiter_kwargs={
+                "max_interval_seconds": 7,
+                "max_wait_seconds": 100,
+            },
         )
-
-        # Get the work request ID from the response headers
-        work_request_id = update_listener_response.headers.get("opc-work-request-id")
 
         # Log info
-        logging.info(
-            f"Waiting for listener '{listener.name}' to be updated with wid -> {work_request_id}"
-        )
-
-        # Wait for the work request to complete
-        get_work_request_response = oci.wait_until(
-            di["oci_lb_client"],
-            di["oci_lb_client"].get_work_request(work_request_id),
-            "lifecycle_state",
-            "SUCCEEDED",
-            max_interval_seconds=7,  # Check every 7 seconds max
-            max_wait_seconds=100,
-        )
+        logging.info(f"Response for updating listener {listener.name} -> {response}")
 
         # Check if the work request failed
-        if get_work_request_response.data.lifecycle_state == "FAILED":
-            error_messages = [
-                error.message for error in get_work_request_response.data.error_details
-            ]
+        if response.data.lifecycle_state == "FAILED":
+            error_messages = [error.message for error in response.data.error_details]
             raise Exception(
                 f"Listener '{listener.name}' update failed: {', '.join(error_messages)}"
             )
 
-        logging.info(
-            f"Listener '{listener.name}' updated successfully with certificate '{certificate_name}'"
-        )
+    # Log info
+    logging.info(
+        f"Listeners updated successfully with certificate '{certificate_name}'"
+    )
 
 
 def oci_backup_certificates(
     namespace_name: str,
-    bucket_name: str,
     bucket_certificate_live_path: str,
     bucket_certificate_backup_path: str,
-    working_directory_path: str,
-    certificate_files: list[str],
 ):
     """
     Backup certificates from live path to backup path via local working directory.
     Downloads all files from live path, saves them locally, then uploads to backup path.
     """
 
-    local_backup_path = Path(working_directory_path) / bucket_certificate_backup_path
+    local_backup_path = Path(di["working_directory"]) / bucket_certificate_backup_path
 
     # Create the local backup directory
     local_backup_path.mkdir(parents=True, exist_ok=True)
@@ -252,7 +229,7 @@ def oci_backup_certificates(
     )
 
     # Step 1: Download all certificate files from live path to local directory
-    for cert_file in certificate_files:
+    for cert_file in di["certificate_files"]:
         live_object_path = f"{bucket_certificate_live_path}/{cert_file}"
         local_file_path = local_backup_path / cert_file
 
@@ -261,7 +238,7 @@ def oci_backup_certificates(
         # Download the certificate file
         cert_content = oci_download_object(
             namespace_name=namespace_name,
-            bucket_name=bucket_name,
+            bucket_name=di["bucket_certificate_name"],
             object_name=live_object_path,
         )
 
@@ -271,7 +248,7 @@ def oci_backup_certificates(
         logging.info(f"Successfully downloaded and saved {cert_file}")
 
     # Step 2: Upload all files from local directory to backup path
-    for cert_file in certificate_files:
+    for cert_file in di["certificate_files"]:
         local_file_path = local_backup_path / cert_file
         backup_object_path = f"{bucket_certificate_backup_path}/{cert_file}"
 
@@ -283,7 +260,7 @@ def oci_backup_certificates(
         # Upload to backup location
         oci_upload_object(
             namespace_name=namespace_name,
-            bucket_name=bucket_name,
+            bucket_name=di["bucket_certificate_name"],
             object_name=backup_object_path,
             object_content=cert_content,
             content_type="application/x-pem-file",

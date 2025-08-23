@@ -49,7 +49,8 @@ def main_injection(func):
 
         # Retrieve OS variables
         DOPPLER_MAIN_TOKEN = os.environ["DOPPLER_MAIN_TOKEN"]
-        OWNER_EMAIL = "mervinhemaraju16@gmail.com"
+
+        # Set variables
         OCI_SECRETS_NAME = "cloud-oci-creds"
         OCI_ACCOUNT_NAME = "HELIOS"
         OCI_REGION = "af-johannesburg-1"
@@ -71,7 +72,22 @@ def main_injection(func):
 
         # Set DI Injections
         # > injections
-        di["owner_email"] = OWNER_EMAIL
+        di["owner_email"] = "mervinhemaraju16@gmail.com"
+        di["working_directory"] = "tmp/renewdirectory"
+        di["bucket_certificate_name"] = "certificates"
+        di["bucket_certificate_directory_live"] = (
+            "live/san-mervinhemaraju-com-plagueworks-org"
+        )
+        di["bucket_certificate_directory_backup"] = (
+            "backup/san-mervinhemaraju-com-plagueworks-org"
+        )
+        di["load_balancer_name"] = "web"
+        di["certificate_files"] = [
+            "cert.pem",
+            "chain.pem",
+            "fullchain.pem",
+            "privkey.pem",
+        ]
 
         # > secrets injections
         di["secrets"] = doppler.secrets
@@ -85,6 +101,11 @@ def main_injection(func):
         )
         di["oci_bucket_client"] = oci.object_storage.ObjectStorageClient(config)
         di["oci_lb_client"] = oci.load_balancer.LoadBalancerClient(config)
+        di["oci_lb_composite_client"] = (
+            oci.load_balancer.LoadBalancerClientCompositeOperations(
+                client=di["oci_lb_client"]
+            )
+        )
 
         func(*args, **kwargs)
 
