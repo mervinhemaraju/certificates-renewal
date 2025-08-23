@@ -1,6 +1,6 @@
 # TODO(Resolve issues in ecr vulnerability)
 # Use AWS Lambda Python base image
-FROM public.ecr.aws/lambda/python:3.11.2025.01.15.14
+FROM public.ecr.aws/lambda/python:3.12.2025.08.15.14
 
 # Set working directory
 WORKDIR ${LAMBDA_TASK_ROOT}
