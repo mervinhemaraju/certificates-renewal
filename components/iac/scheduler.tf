@@ -17,7 +17,7 @@ resource "aws_scheduler_schedule" "helios_web_renewals" {
 
   target {
     arn      = module.lambda_renew_web_helios.lambda_function_arn
-    role_arn = module.iam_role_lambda_renew_web_helios.iam_role_arn
+    role_arn = module.iam_role_scheduler_renew_web_helios.iam_role_arn
 
     retry_policy {
       maximum_retry_attempts = 0
@@ -27,6 +27,6 @@ resource "aws_scheduler_schedule" "helios_web_renewals" {
   depends_on = [
     aws_scheduler_schedule_group.certificates_renewal,
     module.lambda_renew_web_helios,
-    module.iam_role_lambda_renew_web_helios
+    module.iam_role_scheduler_renew_web_helios
   ]
 }

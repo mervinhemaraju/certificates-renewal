@@ -1,16 +1,4 @@
 # Create an assumable role for Lambda renew_web_helios
-module "iam_role_lambda_renew_web_helios" {
-
-  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-  version = "~> 5.0"
-
-  create_role           = true
-  role_requires_mfa     = false
-  role_name             = "role-lambda-oci-helios-web-ssl-renew"
-  trusted_role_services = ["lambda.amazonaws.com"]
-}
-
-# Create an assumable role for Lambda renew_web_helios
 module "iam_role_scheduler_renew_web_helios" {
 
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
@@ -44,7 +32,7 @@ module "iam_role_scheduler_renew_web_helios" {
       ]
 
       resources = [
-        module.iam_role_lambda_renew_web_helios.iam_role_arn
+        module.lambda_renew_web_helios.lambda_role_arn
       ]
     }
   ]

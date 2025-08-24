@@ -15,11 +15,11 @@ module "lambda_renew_web_helios" {
   create_async_event_config         = true
   maximum_retry_attempts            = local.constants.lambda.RETRIES_ATTEMPT
 
-  create_lambda_function_url    = false
-  attach_cloudwatch_logs_policy = true
+  create_lambda_function_url = false
 
-  create_role = false
-  lambda_role = module.iam_role_lambda_renew_web_helios.iam_role_arn
+  create_role                   = true
+  attach_cloudwatch_logs_policy = true
+  # lambda_role = module.iam_role_lambda_renew_web_helios.iam_role_arn 
 
   create_package = false
   package_type   = "Image"
