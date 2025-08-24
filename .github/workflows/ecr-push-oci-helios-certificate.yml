@@ -27,7 +27,6 @@ env:
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/heads/feature/')
 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
