@@ -28,7 +28,7 @@ def main(event, context):
     # Post script starting on slack
     _, slack_thread = post_to_slack(
         blocks=block_info(
-            message=f"Certificates renewal starting for OCI Helios {di['load_balancer_name']} LB"
+            message=f"Certificates renewal starting for OCI Helios {di['load_balancer_name']} load balancer."
         )
     )
 
