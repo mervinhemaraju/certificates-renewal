@@ -4,6 +4,9 @@ VALUE_COLOR_POSITIVE = "#71ff6e"
 
 
 def block_completed():
+    """
+    Block to display that the run completed
+    """
     return [
         {
             "color": VALUE_COLOR_POSITIVE,
@@ -23,6 +26,10 @@ def block_completed():
 
 
 def block_info(message):
+    """
+    Block to display an info
+    """
+
     return [
         {
             "color": VALUE_COLOR_STATEMENT,
@@ -42,6 +49,10 @@ def block_info(message):
 
 
 def block_error(error_message):
+    """
+    Block to display errors
+    """
+
     return [
         {
             "color": VALUE_COLOR_NEGATIVE,
