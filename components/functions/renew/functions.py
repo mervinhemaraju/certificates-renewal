@@ -8,6 +8,9 @@ from cryptography.hazmat.backends import default_backend
 
 
 def post_to_slack(blocks, thread_ts=None, channel=None, text="`certificates-renewal`"):
+    """
+    Posts messages and attachments to slack
+    """
     # Posts the message to slack
     response = di["slack_wc"].chat_postMessage(
         channel=di["slack_certificates_channel"] if channel is None else channel,
@@ -21,6 +24,9 @@ def post_to_slack(blocks, thread_ts=None, channel=None, text="`certificates-rene
 
 
 def extract_secret(secret, project, key):
+    """
+    Easily extract secrets from Doppler repos
+    """
     return secret.get(
         project=project,
         config="prd",
@@ -29,6 +35,9 @@ def extract_secret(secret, project, key):
 
 
 def load_cloudflare_ini_file():
+    """
+    Create the cloudflare.ini file
+    """
     # Get the cloudflare token
     cloudflare_token = extract_secret(
         secret=di["secrets"], project="apps-creds", key="CLOUDFLARE_TERRAFORM_TOKEN"
@@ -71,6 +80,10 @@ def oci_download_object(
     bucket_name: str,
     object_name: str,
 ) -> bytes:
+    """
+    Download files from OCI bucket
+    """
+
     # Download the object
     get_object_response = di["oci_bucket_client"].get_object(
         namespace_name=namespace_name, bucket_name=bucket_name, object_name=object_name
@@ -93,6 +106,10 @@ def oci_upload_object(
     object_content: bytes,
     content_type: str = "application/octet-stream",
 ) -> None:
+    """
+    Upload fiels to OCI bucket
+    """
+
     # Upload the object
     di["oci_bucket_client"].put_object(
         namespace_name=namespace_name,
@@ -107,6 +124,10 @@ def oci_upload_object(
 
 
 def oci_get_load_balancer_details():
+    """
+    Get OCI load balancer details
+    """
+
     # Query the load balancers
     load_balancers_response = (
         di["oci_lb_client"]
@@ -138,6 +159,10 @@ def oci_get_load_balancer_details():
 
 
 def oci_create_lb_certificate(lb_id: str, cert: str, ca: str, prinvkey: str):
+    """
+    Create a certificate on the OCI load balancer
+    """
+
     # Generate a name for the certificate
     name = (
         f"san-mervinhemaraju.com-plagueworks.org-{datetime.now().strftime('%Y.%m.%d')}"
@@ -177,6 +202,10 @@ def oci_create_lb_certificate(lb_id: str, cert: str, ca: str, prinvkey: str):
 def oci_update_ssl_listeners(
     listeners: list[str], load_balancer_id: str, certificate_name: str
 ):
+    """
+    Update the SSL listener to take the created certificate on the load balancer
+    """
+
     # Iterate through each listeners
     for listener in listeners:
         # Update the listener
