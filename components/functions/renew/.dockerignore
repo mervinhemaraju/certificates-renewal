@@ -1,0 +1,65 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Testing files
+test.py
+test.sh
+runner.py
+run.sh
+
+# Temporary directories
+tmp/
+
+# Environment files
+*.env
+secrets.env
+
+# Git files
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+*.swp
+*.swo
+
+# Documentation
+README.md
+*.md
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Archive files
+*.zip
+*.tar.gz
+
+# Lambda layers (if any)
+lambda-layer/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files themselves (to avoid recursion)
+Dockerfile
+.dockerignore
+
+# Coverage and test reports
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.hypothesis/
