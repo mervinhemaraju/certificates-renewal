@@ -120,6 +120,7 @@ def main_injection(func):
 
         # > Slack
         di["slack_certificates_channel"] = "#certificates"
+        di["slack_certificates_channel_alerts"] = "#alerts"
 
         func(*args, **kwargs)
 

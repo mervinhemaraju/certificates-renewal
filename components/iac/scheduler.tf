@@ -8,8 +8,10 @@ resource "aws_scheduler_schedule" "helios_web_renewals" {
   name                = "schedule-helios-web-renewal"
   description         = "The schedule for renewing the SSL certificates for the Helios web Load Balancer."
   group_name          = aws_scheduler_schedule_group.certificates_renewal.name
-  schedule_expression = "cron(0 16 ? * SUN#1 *)"
+  schedule_expression = "cron(0 9 ? * SUN#1 *)"
   state               = "ENABLED"
+
+  schedule_expression_timezone = "Indian/Mauritius"
 
   flexible_time_window {
     mode = "OFF"

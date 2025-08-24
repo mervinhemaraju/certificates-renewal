@@ -202,5 +202,5 @@ def main(event, context):
             blocks=block_error(
                 error_message=str(e),
             ),
-            thread_ts=slack_thread,
+            channel=di["slack_certificates_channel_alerts"],
         )
