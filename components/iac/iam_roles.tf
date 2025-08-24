@@ -10,30 +10,30 @@ module "iam_role_scheduler_renew_web_helios" {
   trusted_role_services = ["scheduler.amazonaws.com"]
 
   # Inline policy for custom permissions
-  inline_policy_statements = [
-    {
-      sid    = "AllowLambdaInvoke"
-      effect = "Allow"
+  # inline_policy_statements = [
+  #   {
+  #     sid    = "AllowLambdaInvoke"
+  #     effect = "Allow"
 
-      actions = [
-        "lambda:InvokeFunction"
-      ]
+  #     actions = [
+  #       "lambda:InvokeFunction"
+  #     ]
 
-      resources = [
-        module.lambda_renew_web_helios.lambda_function_arn
-      ]
-    },
-    {
-      sid    = "AllowIamPassRoleOnLambdaRole"
-      effect = "Allow"
+  #     resources = [
+  #       module.lambda_renew_web_helios.lambda_function_arn
+  #     ]
+  #   },
+  #   {
+  #     sid    = "AllowIamPassRoleOnLambdaRole"
+  #     effect = "Allow"
 
-      actions = [
-        "iam:PassRole"
-      ]
+  #     actions = [
+  #       "iam:PassRole"
+  #     ]
 
-      resources = [
-        module.lambda_renew_web_helios.lambda_role_arn
-      ]
-    }
-  ]
+  #     resources = [
+  #       module.lambda_renew_web_helios.lambda_role_arn
+  #     ]
+  #   }
+  # ]
 }

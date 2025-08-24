@@ -3,7 +3,7 @@
 variable "region" {
   type        = string
   description = "The AWS target region."
-  default     = "eu-west-1"
+  default     = "af-south-1"
 }
 
 variable "bucket_key_prefix_iac" {
