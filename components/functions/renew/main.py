@@ -15,7 +15,12 @@ from functions import (
     oci_backup_certificates,
 )
 from di import main_injection
-from utils.slack_blocks import block_completed, block_error, block_info
+from utils.slack_blocks import (
+    block_completed,
+    block_error,
+    block_info,
+    block_skipped,
+)
 
 
 @main_injection
@@ -182,6 +187,23 @@ def main(event, context):
 
             # Delete the whole working directory
             shutil.rmtree(di["working_directory"])
+
+        else:
+            # Log info
+            logging.info(
+                f"Certificates has not reached the renewal date yet ({days_remaining} days remaining). Script completed successfully."
+            )
+
+            # Post to slack
+            post_to_slack(
+                blocks=block_skipped(
+                    days_remaining=days_remaining,
+                ),
+                thread_ts=slack_thread,
+            )
+
+            # End the script
+            return
 
         # Log info
         logging.info("Renew script has successfully completed.")

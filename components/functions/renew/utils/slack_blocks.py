@@ -25,6 +25,28 @@ def block_completed():
     ]
 
 
+def block_skipped(days_remaining: int):
+    """
+    Block to display that the renewal was skipped
+    """
+    return [
+        {
+            "color": VALUE_COLOR_POSITIVE,
+            "blocks": [
+                {
+                    "type": "section",
+                    "fields": [
+                        {
+                            "type": "mrkdwn",
+                            "text": f"Certificates has not reached the renewal date yet ({days_remaining} days remaining). Script completed successfully.",
+                        }
+                    ],
+                },
+            ],
+        }
+    ]
+
+
 def block_info(message):
     """
     Block to display an info
