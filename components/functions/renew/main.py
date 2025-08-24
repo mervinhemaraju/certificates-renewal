@@ -4,6 +4,7 @@ from kink import di
 from pathlib import Path
 from certbot._internal import main as certbot_main
 from functions import (
+    post_to_slack,
     load_cloudflare_ini_file,
     check_certificate_expiry,
     oci_download_object,
@@ -14,10 +15,18 @@ from functions import (
     oci_backup_certificates,
 )
 from di import main_injection
+from utils.slack_blocks import block_completed, block_error, block_info
 
 
 @main_injection
 def main(event, context):
+    # Post script starting on slack
+    _, slack_thread = post_to_slack(
+        blocks=block_info(
+            message=f"Certificates renewal starting for OCI Helios {di['load_balancer_name']} LB"
+        )
+    )
+
     # Add main try except
     # to catch all errors inside the app
     try:
@@ -66,8 +75,8 @@ def main(event, context):
         )
 
         # Log info
-        logging.info(f"Needs renewwal: {needs_renewal}")
-        logging.info(f"Certificate expires in {days_remaining} days. Renewing...")
+        logging.info(f"Needs renewwal is -> {needs_renewal}")
+        logging.info(f"Certificate expires in {days_remaining} days.")
 
         # Check if renewal is needed or force_renew is set
         if needs_renewal or force_renew:
@@ -176,9 +185,22 @@ def main(event, context):
 
         # Log info
         logging.info("Renew script has successfully completed.")
-        # TODO(Add slack notifications)
+
+        # Post to slack
+        post_to_slack(
+            blocks=block_completed(),
+            thread_ts=slack_thread,
+        )
 
     except Exception as e:
         # Log error message
         logging.error("Fatal error occurred in script:")
         logging.error(str(e))
+
+        # Post to slack
+        post_to_slack(
+            blocks=block_error(
+                error_message=str(e),
+            ),
+            thread_ts=slack_thread,
+        )

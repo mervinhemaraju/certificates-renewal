@@ -4,6 +4,7 @@ import oci
 from kink import di
 from functools import wraps
 from dopplersdk import DopplerSDK
+from slack_sdk import WebClient
 from functions import extract_secret
 
 
@@ -51,6 +52,7 @@ def main_injection(func):
         DOPPLER_MAIN_TOKEN = os.environ["DOPPLER_MAIN_TOKEN"]
 
         # Set variables
+        APPS_SECRETS_NAME = "apps-creds"
         OCI_SECRETS_NAME = "cloud-oci-creds"
         OCI_ACCOUNT_NAME = "HELIOS"
         OCI_REGION = "af-johannesburg-1"
@@ -69,6 +71,15 @@ def main_injection(func):
 
         # Validate oci config
         oci.config.validate_config(config)
+
+        # Initialize the slack sdk
+        di["slack_wc"] = WebClient(
+            token=extract_secret(
+                secret=doppler.secrets,
+                project=APPS_SECRETS_NAME,
+                key="SLACK_BOT_MAIN_TOKEN",
+            )
+        )
 
         # Set DI Injections
         # > injections
@@ -106,6 +117,9 @@ def main_injection(func):
                 client=di["oci_lb_client"]
             )
         )
+
+        # > Slack
+        di["slack_certificates_channel"] = "#certificates"
 
         func(*args, **kwargs)
 

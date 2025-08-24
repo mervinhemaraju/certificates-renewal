@@ -19,7 +19,6 @@ module "lambda_renew_web_helios" {
 
   create_role                   = true
   attach_cloudwatch_logs_policy = true
-  # lambda_role = module.iam_role_lambda_renew_web_helios.iam_role_arn 
 
   create_package = false
   package_type   = "Image"

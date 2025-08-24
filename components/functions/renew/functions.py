@@ -7,6 +7,19 @@ from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
 
+def post_to_slack(blocks, thread_ts=None, channel=None, text="`certificates-renewal`"):
+    # Posts the message to slack
+    response = di["slack_wc"].chat_postMessage(
+        channel=di["slack_certificates_channel"] if channel is None else channel,
+        text=text,
+        attachments=blocks,
+        thread_ts=thread_ts,
+    )
+
+    # Returns the full response and the thread ts code
+    return response, response["ts"]
+
+
 def extract_secret(secret, project, key):
     return secret.get(
         project=project,
@@ -26,7 +39,7 @@ def load_cloudflare_ini_file():
         f.write(f"dns_cloudflare_api_token = {cloudflare_token}\n")
 
 
-def check_certificate_expiry(certificate: bytes, days_before_expiration: int = 30):
+def check_certificate_expiry(certificate: bytes, days_before_expiration: int = 15):
     """
     Check if certificate exists and needs renewal
     """
@@ -39,17 +52,17 @@ def check_certificate_expiry(certificate: bytes, days_before_expiration: int = 3
         expiry_date = cert.not_valid_after
         days_remaining = (expiry_date - datetime.now()).days
 
-        print(
-            f"Current certificate expires on {expiry_date}. Days remaining: {days_remaining}"
-        )
-
         # Check if renewal is needed
         needs_renewal = days_remaining <= days_before_expiration
 
+        # Return the days remaining and whether it needs renewal
         return needs_renewal, days_remaining
 
     except Exception as e:
-        print(f"Error checking certificate: {str(e)}")
+        # Log error
+        logging.error(f"Error checking certificate: {str(e)}")
+
+        # Force the renewal
         return True, 0
 
 
@@ -58,8 +71,6 @@ def oci_download_object(
     bucket_name: str,
     object_name: str,
 ) -> bytes:
-    logging.info(f"Downloading object: {object_name} from bucket: {bucket_name}")
-
     # Download the object
     get_object_response = di["oci_bucket_client"].get_object(
         namespace_name=namespace_name, bucket_name=bucket_name, object_name=object_name
@@ -68,8 +79,10 @@ def oci_download_object(
     # Get the content
     object_content = get_object_response.data.content
 
+    # Log info
     logging.info(f"Successfully downloaded {object_name} ({len(object_content)} bytes)")
 
+    # Return object
     return object_content
 
 
@@ -80,8 +93,6 @@ def oci_upload_object(
     object_content: bytes,
     content_type: str = "application/octet-stream",
 ) -> None:
-    logging.info(f"Uploading object: {object_name} to bucket: {bucket_name}")
-
     # Upload the object
     di["oci_bucket_client"].put_object(
         namespace_name=namespace_name,
@@ -91,6 +102,7 @@ def oci_upload_object(
         content_type=content_type,
     )
 
+    # Log info
     logging.info(f"Successfully uploaded {object_name}")
 
 
@@ -219,6 +231,7 @@ def oci_backup_certificates(
     Downloads all files from live path, saves them locally, then uploads to backup path.
     """
 
+    # Build path
     local_backup_path = Path(di["working_directory"]) / bucket_certificate_backup_path
 
     # Create the local backup directory
@@ -266,8 +279,10 @@ def oci_backup_certificates(
             content_type="application/x-pem-file",
         )
 
+        # Log info
         logging.info(f"Successfully uploaded {cert_file} to backup location")
 
+    # Info
     logging.info(
         f"Certificate backup completed successfully to {bucket_certificate_backup_path}"
     )
