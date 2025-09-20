@@ -2,7 +2,7 @@
 module "lambda_renew_web_helios" {
 
   source  = "terraform-aws-modules/lambda/aws"
-  version = "7.0.0"
+  version = "~> 8"
 
   function_name = "oci-certificate-renew-helios"
   description   = "The lambda function that renews the SSL certificates on OCI Helios Web Load Balancer"
@@ -17,7 +17,7 @@ module "lambda_renew_web_helios" {
 
   create_lambda_function_url = false
 
-  create_role                   = true
+  create_role                   = truex
   attach_cloudwatch_logs_policy = true
 
   create_package = false
