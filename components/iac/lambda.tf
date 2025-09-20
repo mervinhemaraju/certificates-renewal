@@ -22,6 +22,7 @@ module "lambda_renew_web_helios" {
 
   create_package = false
   package_type   = "Image"
+  publish        = true
   image_uri      = data.aws_ecr_image.renew_web_helios.image_uri
 
   environment_variables = {
