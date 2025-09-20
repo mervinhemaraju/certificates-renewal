@@ -17,7 +17,7 @@ module "lambda_renew_web_helios" {
 
   create_lambda_function_url = false
 
-  create_role                   = truex
+  create_role                   = true
   attach_cloudwatch_logs_policy = true
 
   create_package = false
