@@ -29,7 +29,7 @@ The system consists of two main components:
 
 ### Certificate Renewal Process
 
-The renewal process is triggered automatically via AWS EventBridge Scheduler on the first Sunday of each month at 09:00 Mauritius Time. The Lambda function handles the complete certificate lifecycle in a single operation.
+The renewal process is triggered automatically via AWS EventBridge Scheduler on every Sunday at 04:00 Mauritius Time. The Lambda function handles the complete certificate lifecycle in a single operation.
 
 **Workflow:**
 
