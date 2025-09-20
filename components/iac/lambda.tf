@@ -28,5 +28,12 @@ module "lambda_renew_web_helios" {
     DOPPLER_MAIN_TOKEN = var.token_doppler_global
   }
 
+  allowed_triggers = {
+    SchedulerTrigger = {
+      principal  = "scheduler.amazonaws.com"
+      source_arn = aws_scheduler_schedule.helios_web_renewals.arn
+    }
+  }
+
   trusted_entities = local.constants.lambda.TRUSTED_ENTITIES
 }

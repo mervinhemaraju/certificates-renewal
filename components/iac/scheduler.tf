@@ -28,7 +28,7 @@ resource "aws_scheduler_schedule" "helios_web_renewals" {
 
   depends_on = [
     aws_scheduler_schedule_group.certificates_renewal,
-    module.lambda_renew_web_helios,
+    # module.lambda_renew_web_helios,
     module.iam_role_scheduler_renew_web_helios
   ]
 }
