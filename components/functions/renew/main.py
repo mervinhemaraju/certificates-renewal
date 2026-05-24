@@ -22,7 +22,6 @@ from utils.slack_blocks import (
     block_skipped,
 )
 
-
 @main_injection
 def main(event, context):
     # Post script starting on slack
